@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntelHexFileGUI", "IntelHexGUI\IntelHexFileGUI.csproj", "{43932927-FAEB-4EAC-AE26-94A409EC3118}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntelHexFile", "IntelHexFile\IntelHexFile.csproj", "{4F0A5801-B56E-40CB-8560-C040F5AE5220}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntelHexFileTests", "IntelHexFileTest\IntelHexFileTests.csproj", "{7BF84C4B-90CB-4B46-BB4C-7896891105DC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{43932927-FAEB-4EAC-AE26-94A409EC3118}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43932927-FAEB-4EAC-AE26-94A409EC3118}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43932927-FAEB-4EAC-AE26-94A409EC3118}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43932927-FAEB-4EAC-AE26-94A409EC3118}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F0A5801-B56E-40CB-8560-C040F5AE5220}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F0A5801-B56E-40CB-8560-C040F5AE5220}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F0A5801-B56E-40CB-8560-C040F5AE5220}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F0A5801-B56E-40CB-8560-C040F5AE5220}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7BF84C4B-90CB-4B46-BB4C-7896891105DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BF84C4B-90CB-4B46-BB4C-7896891105DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7BF84C4B-90CB-4B46-BB4C-7896891105DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7BF84C4B-90CB-4B46-BB4C-7896891105DC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
