@@ -177,7 +177,6 @@ namespace IntelHex
         #endregion
 
         #region Method
-
         public void Load(string fileName, eHash hash = eHash.CRC32, bool append = false)
         {
 
@@ -192,6 +191,13 @@ namespace IntelHex
                 while (reader.Peek() > 0)
                 {
                     IntelHexRecord record = new IntelHexRecord(reader.ReadLine());
+
+                    //Console.WriteLine("len: " + record.Bytes.Length);
+                    //for (tmp = 0; tmp < record.Bytes.Length; tmp++)
+                    //{
+                    //    Console.WriteLine(tmp + ": " + record.Bytes[tmp].ToString("X"));
+                    //}
+
                     /* 
                      * I32HEX files use only record types 00, 01, 04, and 05 (32 bit addresses)
                      * 00 : Data
@@ -278,14 +284,22 @@ namespace IntelHex
                 foreach (BinaryBlock b in blocks)
                 {
                     byte[] data = b.GetBytes();
+
                     ushort high = (ushort)(b.Address >> 16);
                     ushort low = (ushort)(b.Address & 0xFFFF);
 
-                    writer.WriteLine(IntelHexRecord.EncodeLine(eRecordType.ExtendedLinearAddress, 0, new byte[] { (byte)(high >> 8), (byte)high}));
+                    //writer.WriteLine(IntelHexRecord.EncodeLine(eRecordType.ExtendedLinearAddress, 0, new byte[] { (byte)(high >> 8), (byte)high}));
                     /* Align the data start addrss to hexLineDataLen bytes */
                     int datalinelen = hexLineDataLen - (int)b.Address % hexLineDataLen;
-                    writer.WriteLine(IntelHexRecord.EncodeLine(eRecordType.Data, low, data.SubArray(0, (datalinelen > data.Length)? data.Length : datalinelen)));
 
+                    // force fixed to 16 for cmsemicon keil c intel hex file
+                    if (b.Address == 43)
+                    {
+                        datalinelen = hexLineDataLen;
+                    }
+                    
+                    writer.WriteLine(IntelHexRecord.EncodeLine(eRecordType.Data, low, data.SubArray(0, (datalinelen > data.Length)? data.Length : datalinelen)));
+                    
                     for (int i = datalinelen; i < data.Length; )
                     {
                         /*Add last value*/
@@ -293,11 +307,11 @@ namespace IntelHex
 
                         datalinelen = ((data.Length - i) > hexLineDataLen) ? hexLineDataLen : (data.Length - i);
 
-                        if (low == 0)
-                        {
-                            high++;
-                            writer.WriteLine(IntelHexRecord.EncodeLine(eRecordType.ExtendedLinearAddress, 0, new byte[] {(byte)(high >>8), (byte)high}));
-                        }
+                        //if (low == 0)
+                        //{
+                        //    high++;
+                        //    writer.WriteLine(IntelHexRecord.EncodeLine(eRecordType.ExtendedLinearAddress, 0, new byte[] {(byte)(high >>8), (byte)high}));
+                        //}
 
                         writer.WriteLine(IntelHexRecord.EncodeLine(eRecordType.Data, low, data.SubArray(i, datalinelen)));
 
