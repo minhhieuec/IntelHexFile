@@ -26,6 +26,8 @@ using System;
 using System.IO;
 using System.Linq;
 using System.ComponentModel;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.InteropServices;
 
 namespace IntelHex
 {
@@ -38,6 +40,109 @@ namespace IntelHex
         ExtendedLinearAddress = 0x04,
         StartLinearAddress = 0x05
     }
+
+    #region micro defines
+
+    public enum ID_EQ_Band
+    {
+        EQ_BAND1 = 0,
+        EQ_BAND2,
+        EQ_BAND3,
+        EQ_BAND4,
+        EQ_BAND5,
+        EQ_BAND6,
+        EQ_BAND7,
+        EQ_BAND8,
+        EQ_BAND9,
+        EQ_BAND10,
+        EQ_BAND11,
+        EQ_BAND12,
+        EQ_BAND13,
+        EQ_BAND14,
+        EQ_BAND15,
+        MAX_EQ_BAND,
+    }
+
+    public struct Equalizer_Info_t
+    {
+        short [] freq;
+        short [] gain;
+        short [] q;
+        short [] type;
+    };
+    
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct Mic_System_Cfg_t
+    {
+        public byte cfg_mark;                           // mark start config package, default is 0xA5
+        public byte num_freq;                           // total frequency, maximum 20 frequency band
+        public ushort start_freq_disp_cha;              // start frequency
+        public ushort start_freq_disp_chb;              // start frequency
+        public ushort freq_inc_step;                    // increase step
+        public byte num_eq_band;                        // number equalizer band using, maximum 10 bands (up to 15 band)
+        // equalizer band 1
+        public UInt32 coeff_b0_band1;
+        public UInt32 coeff_b1_band1;
+        public UInt32 coeff_b2_band1;
+        public UInt32 coeff_a0_band1;
+        public UInt32 coeff_a1_band1;
+        // equalizer band 2
+        public UInt32 coeff_b0_band2;
+        public UInt32 coeff_b1_band2;
+        public UInt32 coeff_b2_band2;
+        public UInt32 coeff_a0_band2;
+        public UInt32 coeff_a1_band2;
+        // equalizer band 3
+        public UInt32 coeff_b0_band3;
+        public UInt32 coeff_b1_band3;
+        public UInt32 coeff_b2_band3;
+        public UInt32 coeff_a0_band3;
+        public UInt32 coeff_a1_band3;
+        // equalizer band 4
+        public UInt32 coeff_b0_band4;
+        public UInt32 coeff_b1_band4;
+        public UInt32 coeff_b2_band4;
+        public UInt32 coeff_a0_band4;
+        public UInt32 coeff_a1_band4;
+        // equalizer band 5
+        public UInt32 coeff_b0_band5;
+        public UInt32 coeff_b1_band5;
+        public UInt32 coeff_b2_band5;
+        public UInt32 coeff_a0_band5;
+        public UInt32 coeff_a1_band5;
+        // equalizer band 6
+        public UInt32 coeff_b0_band6;
+        public UInt32 coeff_b1_band6;
+        public UInt32 coeff_b2_band6;
+        public UInt32 coeff_a0_band6;
+        public UInt32 coeff_a1_band6;
+        // equalizer band 7
+        public UInt32 coeff_b0_band7;
+        public UInt32 coeff_b1_band7;
+        public UInt32 coeff_b2_band7;
+        public UInt32 coeff_a0_band7;
+        public UInt32 coeff_a1_band7;
+        // equalizer band 8
+        public UInt32 coeff_b0_band8;
+        public UInt32 coeff_b1_band8;
+        public UInt32 coeff_b2_band8;
+        public UInt32 coeff_a0_band8;
+        public UInt32 coeff_a1_band8;
+
+        public short checksum;                          // checksum crc16
+        public byte[] getBytes(Mic_System_Cfg_t str)
+        {
+            int size = Marshal.SizeOf(str);
+            byte[] arr = new byte[size];
+
+            IntPtr ptr = Marshal.AllocHGlobal(size);
+            Marshal.StructureToPtr(str, ptr, true);
+            Marshal.Copy(ptr, arr, 0, size);
+            Marshal.FreeHGlobal(ptr);
+            return arr;
+        }
+    }
+    #endregion
 
     public static class Extention
     {
@@ -163,7 +268,8 @@ namespace IntelHex
 
         private const int hexLineDataLen = 16;
         private BindingList<BinaryBlock> blocks = new BindingList<BinaryBlock>();
-
+        private byte[] all_micro_configs;
+        
         #endregion
 
         #region Properties for gridview
@@ -176,12 +282,68 @@ namespace IntelHex
         }
         #endregion
 
+        #region mic receiver configs
+        // Convert an object to a byte array
+        private byte[] ObjectToByteArray(Object obj)
+        {
+            if (obj == null)
+                return null;
+
+            BinaryFormatter bf = new BinaryFormatter();
+            MemoryStream ms = new MemoryStream();
+            bf.Serialize(ms, obj);
+
+            return ms.ToArray();
+        }
+        public ushort lsb_to_msb(ushort lsb)
+        {
+            ushort msb;
+
+            msb = (ushort)((lsb & 0xFF) << 8 | (lsb >> 8));
+
+            return msb;
+        }
+
+        public void get_all_mic_rx_configs()
+        {
+            const byte num_freq = 9;
+            const ushort start_freq_disp_cha = 676;
+            const ushort start_freq_disp_chb = 685;
+            const ushort freq_inc_step = 1000;
+
+            Mic_System_Cfg_t all_cfgs = new Mic_System_Cfg_t();
+
+            all_cfgs.cfg_mark = 0xA5;
+            all_cfgs.num_freq = num_freq;
+            all_cfgs.start_freq_disp_cha = lsb_to_msb(start_freq_disp_cha);
+            all_cfgs.start_freq_disp_chb = lsb_to_msb(start_freq_disp_chb);
+            all_cfgs.freq_inc_step = lsb_to_msb(freq_inc_step);
+
+            byte[] tmp_arr = all_cfgs.getBytes(all_cfgs);
+            Console.WriteLine("len: " + tmp_arr.Length);
+            for (int cnt = 0; cnt < tmp_arr.Length; cnt++)
+            {
+                Console.WriteLine("0x" + tmp_arr[cnt].ToString("X"));
+            }
+
+            //return all_cfgs.ToArray();
+        }
+        #endregion
+
         #region Method
         public void Load(string fileName, eHash hash = eHash.CRC32, bool append = false)
         {
 
             if (!append)
                 blocks.Clear();
+
+            //byte[] mic_configs = 
+                get_all_mic_rx_configs();
+            //Console.WriteLine("cfg len: " + mic_configs.Length);
+            //for (int cnt = 0; cnt < mic_configs.Length; cnt++)
+            //{
+            //    Console.WriteLine(mic_configs[cnt]);
+            //}
 
             using (StreamReader reader = new StreamReader(fileName))
             {
@@ -241,7 +403,15 @@ namespace IntelHex
 
                                 blocks.Insert(i, newblock);
                             }
-
+                            if (CurrentAddress == 15872)
+                            {
+                                Console.WriteLine("set config");
+                                record.Bytes[0] = 0xA5;
+                                record.Bytes[1] = 0xB5;
+                                record.Bytes[2] = 0xC5;
+                                record.Bytes[3] = 0xD5;
+                                record.Bytes[4] = 0xE5;
+                            }
                             newblock.Append(record.Bytes);
                             LastAddress = CurrentAddress + (UInt32)record.Bytes.Length;
 
